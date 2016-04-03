@@ -6,7 +6,7 @@ library(ROCR)
 set.seed(1001)
 
 ## DATA PREPARATION ___________________________________________________________
-df = read.csv("JCS_dataset.csv") 
+df = read.csv("JapaneseCreditScreeningUCI.csv") 
 
 table(duplicated(df))
 
