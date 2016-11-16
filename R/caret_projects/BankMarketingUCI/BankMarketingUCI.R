@@ -13,11 +13,15 @@ require("corrplot")
 registerDoMC(cores = detectCores())
 
 ### DATA PREPARATION _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-df_full <- read.csv("BankMarketingUCI.csv", sep = ";") 
+df_0 <- read.csv("BankMarketingUCI.csv", sep = ";") 
 
-str(df_full)
-summary(df_full[,5])
-df_full[df_full == "unknown"] = NA
+str(df_0)
+summary(df_0[,5])
+df_0[,5] == NULL
+table(is.na(df_0[,5]))
+summary(df_full)
+
+df_0[df_0 == "unknown"] = NA
 summary(df_full[,5])
 
 nrow(df_full)

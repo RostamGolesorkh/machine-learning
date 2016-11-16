@@ -26,7 +26,6 @@ df <- df[complete.cases(df),]
 nrow(df)
 str(df)
 summary(df)
-# ------------------------------------------------------------------------------
 
 ### STRING TO FACTOR TO INT NUMBER _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
 S2N <- function(Scol) {
@@ -44,7 +43,6 @@ S2N <- function(Scol) {
     Ncol <- as.integer(factor(Scol, levels = lvls, labels = lbls))
     Ncol
 }
-# ------------------------------------------------------------------------------
 
 ### DATA PREPARATION _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
 df[,1] <- S2N(df[,1])
@@ -62,7 +60,6 @@ df[,14] <- as.integer(df[,14])
 str(df)
 summary(df)
 table(df$A16)
-#-------------------------------------------------------------------------------
 
 ### CORRELATION INVESTIGATION _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 correlationMatrix <- cor(df[,1:15])
@@ -74,11 +71,9 @@ df$A5 <- NULL
 correlationMatrix <- cor(df[,1:14])
 print(correlationMatrix)
 corrplot(correlationMatrix, method = "number")
-# ------------------------------------------------------------------------------
 
 ### PLOTS _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 pairs.panels(df)
-# ------------------------------------------------------------------------------
 
 ### DATA SPLITTING _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
 splitting_index <- caret::createDataPartition(df$A16,
@@ -89,7 +84,6 @@ df_trn <- df[ splitting_index,] # select 75% for train-data set
 df_tst <- df[-splitting_index,] # select 25% for test-data set
 
 remove(splitting_index)
-# ------------------------------------------------------------------------------
 
 ### mlr PART _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
 ## Linear Discriminant Analysis (LDA)
@@ -160,7 +154,6 @@ roc_rf <- mlr::generateThreshVsPerfData(pred_rf, list(fpr, tpr))
 
 mlr::plotROCCurves(roc_lda)
 mlr::plotROCCurves(roc_rf)
-# ------------------------------------------------------------------------------
 
 ### caret PART _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
 cv_ctrl <- caret::trainControl(method = "repeatedcv",
@@ -178,7 +171,6 @@ print(model_lda_crt)
 
 pred_lda_crt <- predict(model_lda_crt, df_tst[,1:14], type = "raw")
 confusionMatrix(pred_lda_crt, df_tst[,15])
-# ------------------------------------------------------------------------------
 
 ### ROC CURE PLOT _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 ## computing a simple ROC curve
