@@ -18,8 +18,20 @@ MyFuntion.S2N <- function(Scol) {
 
 ### ROC PLOT _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
 MyFuntion.ROCPLOT <- function(model, x_tst, y_tst, mstr) {
-    y_prob <- predict(model, x_tst, type = "prob")
-    prob <- prediction(y_prob[2], y_tst)
+    
+    # take a model, x_tst and y_tst DataFrame, and name of the model as "mstr"
+    # as inputs and returns ROC curve plot.
+    #
+    # Args:
+    #   model: list[]
+    #   x_tst: df[]
+    #   y_tst: df[]
+    #   mstr: char[]
+    # Returns:
+    #   plot: list[]
+    
+    pred_y <- predict(model, x_tst, type = "prob")
+    prob <- prediction(pred_y[2], y_tst)
     perf <- performance(prob, measure = "tpr", x.measure = "fpr") 
     
     auc_s4 <- performance(prob, "auc")
