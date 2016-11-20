@@ -1,12 +1,21 @@
-library(corrplot)
-library(psych)
-library(caret)
-library(ROCR)
+#!/usr/bin/env Rscript
 
 set.seed(1001)
 
-## DATA PREPARATION ___________________________________________________________
-df = read.csv("JCS_dataset.csv") 
+require("doMC")
+require("ROCR")
+require("psych")
+require("caret")
+require("parallel")
+require("corrplot")
+
+source("../../MyFunction.R")
+
+### PARALLEL CALCULATION IN R _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+registerDoMC(cores = detectCores())
+
+### DATA PREPARATION _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+df <- read.csv("JCS_dataset.csv") 
 
 table(duplicated(df))
 
@@ -14,134 +23,119 @@ nrow(df)
 str(df)
 summary(df)
 
-df[df=="?"] = NA
-df = df[complete.cases(df),]
+df[df == "?"] <- NA
+df <- df[complete.cases(df),]
 
-nrow(df)
-str(df)
-summary(df)
-#------------------------------------------------------------------------------
+df$A1 <- MyFuntion.S2N(df$A1)
+df$A2 <- as.double(as.character.factor(df$A2))
+df$A4 <- MyFuntion.S2N(df$A4)
+df$A5 <- MyFuntion.S2N(df$A5)
+df$A6 <- MyFuntion.S2N(df$A6)
+df$A7 <- MyFuntion.S2N(df$A7)
+df$A9 <- MyFuntion.S2N(df$A9)
+df$A10 <- MyFuntion.S2N(df$A10)
+df$A12 <- MyFuntion.S2N(df$A12)
+df$A13 <- MyFuntion.S2N(df$A13)
+df$A14 <- as.double(as.character.factor(df$A14))
 
-### FUNCTIONN STR2NUM _________________________________________________________
-str2num = function(x){
-  lvls = as.vector(unique(x))
-  lbls = c(1:length(lvls))
-  xn = as.integer(factor(x, levels = lvls, labels = lbls))
-  xn
-}
+summary(df$A16)
+str(df$A16)
 
-df[,1] = str2num(df[,1])
-df[,2] = as.double(as.character.factor(df[,2]))
-df[,4] = str2num(df[,4])
-df[,5] = str2num(df[,5])
-df[,6] = str2num(df[,6])
-df[,7] = str2num(df[,7])
-df[,9] = str2num(df[,9])
-df[,10] = str2num(df[,10])
-df[,12] = str2num(df[,12])
-df[,13] = str2num(df[,13])
-df[,14] = as.double(as.character.factor(df[,14]))
+df[, "class"] <- "yes"
+df$class[df$A16 == "-"] <- "no"
+df$class <- as.factor(df$class)
 
-summary(df)
-str(df)
-#------------------------------------------------------------------------------
+table(df$class)
+table(df$A16)
 
-### CORRELATION INVESTIGATION ________________________________________________
-correlationMatrix = cor(df[,1:15])
-print(correlationMatrix)
-corrplot(correlationMatrix, method = "number")
+df$A16 <- NULL
 
-# Correlation plot shows columns 'A4' and 'A5' are identical and one of them
-# must be removed. Therefore,
+### CORRELATION INVESTIGATION _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+corrMatrix <- cor(df[,1:(ncol(df) - 1)])
+corrplot(corrMatrix, method = "number")
 
-df$A5 = NULL
+df$A4 <- NULL
 
-correlationMatrix = cor(df[,1:14])
-print(correlationMatrix)
-corrplot(correlationMatrix, method = "number")
-#------------------------------------------------------------------------------
+corrMatrix <- cor(df[,1:(ncol(df) - 1)])
+corrplot(corrMatrix, method = "number")
 
-### PLOTS _____________________________________________________________________
+### PLOTS _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 pairs.panels(df)
-#------------------------------------------------------------------------------
 
-### DATA SPLITTING ____________________________________________________________
-seed(1001)
+### DATA SPLITTING _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+splitting_index <- createDataPartition(df[, ncol(df)], p = 0.75, list = FALSE)
+df_trn <- df[ splitting_index,] # select 75% for train-data set
+df_tst <- df[-splitting_index,] # select 25% for test-data set
 
-splitting_index = createDataPartition(df[,15], p = 0.75, list = FALSE)
+ncol <- ncol(df)
 
-train_df = df[ splitting_index,] # select 75% for train-data set
- test_df = df[-splitting_index,] # select 25% for test-data set
-str(train_df)
-# -----------------------------------------------------------------------------
+x_trn <- df_trn[,1:(ncol-1)]
+y_trn <- df_trn[,ncol]
 
-### EVALUATING SOME ALGORITHM _________________________________________________
-### Linear Discriminant Analysis (LDA)
-set.seed(1001)
-cv_ctrl = trainControl(method = "repeatedcv",
-                       number = 10,
-                      repeats = 10,
-                            p = 0.75)
+x_tst <- df_tst[,1:(ncol-1)]
+y_tst <- df_tst[,ncol]
 
-lda_model = train(train_df[,1:14],train_df[,15],
-                     method = "lda",
-                    preProc = c("center","scale"),
-                     metric = "Accuracy",
-                  trControl = cv_ctrl)
-print(lda_model)
+cv_ctrl <- caret::trainControl(method = "repeatedcv", 
+                               number = 10, 
+                               repeats = 10, 
+                               classProbs = TRUE,
+                               summaryFunction = twoClassSummary,
+                               allowParallel = TRUE)
 
-predict_y = predict(lda_model, test_df[,1:14], type = "raw")
-confusionMatrix(predict_y, test_df[,15])
-# -----------------------------------------------------------------------------
+### EVALUATING SOME ALGORITHM _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+## k-Nearest Neighbors
+model_knn <- caret::train(x_trn,
+                          y_trn,
+                          method = "knn",
+                          metric = "ROC",
+                          preProc = c("center","scale"),
+                          trControl = cv_ctrl)
 
-### ROC CURE PLOT _____________________________________________________________
-### computing a simple ROC curve
-### (y-axis: tpr, x-axis: fpr)
-probability_y = predict(lda_model, test_df[,1:14], type = "prob")
-prob = prediction(probability_y[2], test_df[,15])
-perf = performance(prob, measure = "tpr", x.measure = "fpr") 
+print(model_knn)
 
-auc_s4 = performance(prob, "auc")
-auc_no = slot(auc_s4, "y.values")
-auc_no = round(as.double(auc_no), 6)
+predict_y <- caret::predict.train(model_knn, x_tst, type = "raw")
+caret::confusionMatrix(predict_y, y_tst, positive = "yes")
 
-legend_vec = c("lda","auc", auc_no)
-legend_str = toString(legend_vec)
+importance <- varImp(model_knn, scale = FALSE)
+print(importance)
+plot(importance)
 
-plot(perf, main="ROC curve", colorize=T)
-abline(a=0, b=1)
-legend(0.50, 0.25, c(legend_str), col=c('black'), lwd=1)
-# -----------------------------------------------------------------------------
+MyFuntion.ROCPLOT(model_knn, x_tst, y_tst, "kNN")
 
-### EVALUATING SOME ALGORITHM _________________________________________________
+## Linear Discriminant Analysis
+model_lda <- caret::train(x_trn,
+                          y_trn,
+                          method = "lda",
+                          metric = "ROC",
+                          trControl = cv_ctrl)
+
+print(model_lda)
+
+predict_y <- caret::predict.train(model_lda, x_tst, type = "raw")
+caret::confusionMatrix(predict_y, y_tst, positive = "yes")
+
+importance <- varImp(model_lda, scale = FALSE)
+print(importance)
+plot(importance)
+
+MyFuntion.ROCPLOT(model_lda, x_tst, y_tst, "LDA")
+
 ### RANDOM FOREST
-set.seed(1001)
-rf_model = train(train_df[,1:14],train_df[,15],
-                  method = "rf",
-                 preProc = c("center","scale"),
-                  metric = "Accuracy",
-               trControl = cv_ctrl)
-print(rf_model)
+model_rf <- caret::train(x_trn,
+                         y_trn,
+                         method = "rf",
+                         preProc = c("center","scale"),
+                         metric = "ROC",
+                         trControl = cv_ctrl)
 
-predict_y = predict(rf_model, test_df[,1:14], type = "raw")
-confusionMatrix(predict_y, test_df[,15])
-# -----------------------------------------------------------------------------
+print(model_rf)
 
-## ROC CURE PLOT ## ___________________________________________________________
-## computing a simple ROC curve
-## (y-axis: tpr, x-axis: fpr)
-probability_y = predict(rf_model, test_df[,1:14], type = "prob")
-prob = prediction(probability_y[2], test_df[,15])
-perf = performance(prob, measure = "tpr", x.measure = "fpr") 
+predict_y <- caret::predict.train(model_lda, x_tst, type = "raw")
+caret::confusionMatrix(predict_y, y_tst, positive = "yes")
 
-auc_s4 = performance(prob, "auc")
-auc_no = slot(auc_s4, "y.values")
-auc_no = round(as.double(auc_no), 6)
+importance <- varImp(model_knn, scale = FALSE)
+print(importance)
+plot(importance)
 
-legend_vec = c("rf","auc", auc_no)
-legend_str = toString(legend_vec)
-
-plot(perf, main="ROC curve", colorize=T)
-abline(a=0, b=1)
-legend(0.50, 0.25, c(legend_str), col=c('black'), lwd=1)
+MyFuntion.ROCPLOT(model_rf, x_tst, y_tst, "RF")
 # -----------------------------------------------------------------------------

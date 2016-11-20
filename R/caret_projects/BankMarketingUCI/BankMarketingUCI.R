@@ -166,7 +166,7 @@ importance <- varImp(model_knn, scale = FALSE)
 print(importance)
 plot(importance)
 
-ROCPLOT(model_knn, x_tst, y_tst, "kNN")
+MyFuntion.ROCPLOT(model_knn, x_tst, y_tst, "kNN")
 
 ## Linear Discriminant Analysis
 model_lda <- caret::train(x_trn,
