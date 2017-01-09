@@ -74,11 +74,11 @@ print(model_knn)
 predict_y <- caret::predict.train(model_knn, x_tst, type = "raw")
 caret::confusionMatrix(predict_y, y_tst, positive = "yes")
 
-importance <- varImp(model_knn, scale = FALSE)
+importance <- caret::varImp(model_knn, scale = FALSE)
 print(importance)
 plot(importance)
 
-MyFuntion.ROCPLOT(model_knn, x_tst, y_tst, "kNN")
+MyFunction.ROCPLOT(model_knn, x_tst, y_tst, "kNN")
 
 ## Linear Discriminant Analysis
 model_lda <- caret::train(x_trn,
@@ -92,11 +92,11 @@ print(model_lda)
 predict_y <- caret::predict.train(model_lda, x_tst, type = "raw")
 caret::confusionMatrix(predict_y, y_tst, positive = "yes")
 
-importance <- varImp(model_lda, scale = FALSE)
+importance <- caret::varImp(model_lda, scale = FALSE)
 print(importance)
 plot(importance)
 
-MyFuntion.ROCPLOT(model_lda, x_tst, y_tst, "LDA")
+MyFunction.ROCPLOT(model_lda, x_tst, y_tst, "LDA")
 
 ### RANDOM FOREST
 model_rf <- caret::train(x_trn,
@@ -111,9 +111,9 @@ print(model_rf)
 predict_y <- caret::predict.train(model_lda, x_tst, type = "raw")
 caret::confusionMatrix(predict_y, y_tst, positive = "yes")
 
-importance <- varImp(model_knn, scale = FALSE)
+importance <- caret::varImp(model_knn, scale = FALSE)
 print(importance)
 plot(importance)
 
-MyFuntion.ROCPLOT(model_rf, x_tst, y_tst, "RF")
+MyFunction.ROCPLOT(model_rf, x_tst, y_tst, "RF")
 # -----------------------------------------------------------------------------

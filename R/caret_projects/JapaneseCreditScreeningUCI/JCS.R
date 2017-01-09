@@ -26,16 +26,16 @@ summary(df)
 df[df == "?"] <- NA
 df <- df[complete.cases(df),]
 
-df$A1 <- MyFuntion.S2N(df$A1)
+df$A1 <- MyFunction.S2N(df$A1)
 df$A2 <- as.double(as.character.factor(df$A2))
-df$A4 <- MyFuntion.S2N(df$A4)
-df$A5 <- MyFuntion.S2N(df$A5)
-df$A6 <- MyFuntion.S2N(df$A6)
-df$A7 <- MyFuntion.S2N(df$A7)
-df$A9 <- MyFuntion.S2N(df$A9)
-df$A10 <- MyFuntion.S2N(df$A10)
-df$A12 <- MyFuntion.S2N(df$A12)
-df$A13 <- MyFuntion.S2N(df$A13)
+df$A4 <- MyFunction.S2N(df$A4)
+df$A5 <- MyFunction.S2N(df$A5)
+df$A6 <- MyFunction.S2N(df$A6)
+df$A7 <- MyFunction.S2N(df$A7)
+df$A9 <- MyFunction.S2N(df$A9)
+df$A10 <- MyFunction.S2N(df$A10)
+df$A12 <- MyFunction.S2N(df$A12)
+df$A13 <- MyFunction.S2N(df$A13)
 df$A14 <- as.double(as.character.factor(df$A14))
 
 summary(df$A16)
@@ -96,11 +96,11 @@ print(model_knn)
 predict_y <- caret::predict.train(model_knn, x_tst, type = "raw")
 caret::confusionMatrix(predict_y, y_tst, positive = "yes")
 
-importance <- varImp(model_knn, scale = FALSE)
+importance <- caret::varImp(model_knn, scale = FALSE)
 print(importance)
 plot(importance)
 
-MyFuntion.ROCPLOT(model_knn, x_tst, y_tst, "kNN")
+MyFunction.ROCPLOT(model_knn, x_tst, y_tst, "kNN")
 
 ## Linear Discriminant Analysis
 model_lda <- caret::train(x_trn,
@@ -114,11 +114,11 @@ print(model_lda)
 predict_y <- caret::predict.train(model_lda, x_tst, type = "raw")
 caret::confusionMatrix(predict_y, y_tst, positive = "yes")
 
-importance <- varImp(model_lda, scale = FALSE)
+importance <- caret::varImp(model_lda, scale = FALSE)
 print(importance)
 plot(importance)
 
-MyFuntion.ROCPLOT(model_lda, x_tst, y_tst, "LDA")
+MyFunction.ROCPLOT(model_lda, x_tst, y_tst, "LDA")
 
 ### RANDOM FOREST
 model_rf <- caret::train(x_trn,
@@ -133,9 +133,9 @@ print(model_rf)
 predict_y <- caret::predict.train(model_lda, x_tst, type = "raw")
 caret::confusionMatrix(predict_y, y_tst, positive = "yes")
 
-importance <- varImp(model_knn, scale = FALSE)
+importance <- caret::varImp(model_knn, scale = FALSE)
 print(importance)
 plot(importance)
 
-MyFuntion.ROCPLOT(model_rf, x_tst, y_tst, "RF")
+MyFunction.ROCPLOT(model_rf, x_tst, y_tst, "RF")
 # -----------------------------------------------------------------------------
